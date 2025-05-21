@@ -52,7 +52,7 @@ public class StudentDao {
                 schoolCd = "";
             }
             pstmt.setString(6, schoolCd);
-            pstmt.executeUpdate();
+            pstmt.executeUpdate();9
         }
     }
 }

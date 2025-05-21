@@ -162,7 +162,7 @@
                 if (conn != null) try { conn.close(); } catch (SQLException ignored) {}
             }
         %>
-        <p><a href="<%=request.getContextPath()%>scoremanager/main/student_create.jsp">新規登録</a></p>
+        <p><a href="<%=request.getContextPath()%>/scoremanager/main/student_create.jsp">新規登録</a></p>
         <% if (error != null) { %>
             <p class="error"><%= error %></p>
         <% } %>

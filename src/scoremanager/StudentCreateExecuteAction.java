@@ -22,7 +22,7 @@ public class StudentCreateExecuteAction implements Action {
         System.out.println("name: " + name);
         System.out.println("entYear: " + entYear);
         System.out.println("classNum: " + classNum);
-        System.out.println("isAttend: " + isAttend);
+        System.out.println("isAttend: " + isAttend);8
         System.out.println("schoolCd: " + schoolCd);
 
         Student student = new Student();

@@ -259,7 +259,7 @@
             </div>
             <button type="submit">登録する</button>
         </form>
-        <p><a href="<%=request.getContextPath()%>/scoremanager/main/student_list.jsp">学生一覧に戻る</a></p>
+        <p><a href="<%=request.getContextPath()%>scoremanager/main/student_list.jsp">学生一覧に戻る</a></p>
         <% if (error != null) { %>
             <p class="error"><%= error %></p>
         <% } %>

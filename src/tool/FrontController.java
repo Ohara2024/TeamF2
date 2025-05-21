@@ -45,7 +45,7 @@ public class FrontController extends HttpServlet {
             }
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            e.printStackTrace(); // ログ出力に置き換え推奨
+            e.printStackTrace(); // ログ出力に置き換え推奨u
         }
     }
 }

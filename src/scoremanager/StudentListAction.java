@@ -17,5 +17,5 @@ public class StudentListAction implements Action {
         System.out.println("Students: " + students); // デバッグ用ログ
         req.setAttribute("students", students);
         req.getRequestDispatcher("/scoremanager/main/student_list.jsp").forward(req, res);
-    }
+    }8
 }
