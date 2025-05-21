@@ -1,5 +1,3 @@
-//学生別成績一覧
-
 package bean;
 
 import java.io.Serializable;
@@ -7,36 +5,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TestListSubject implements Serializable {
-
 	/**
-	 * 入学年度：int
+	 * 入学年度:int
 	 */
 	private int entYear;
 
 	/**
-	 * 学生番号：String
+	 * 学生番号:String
 	 */
 	private String studentNo;
 
 	/**
-	 * 学生名：String
+	 * 学生氏名:String
 	 */
 	private String studentName;
 
 	/**
-	 * クラス：String
+	 * クラス番号:String
 	 */
 	private String classNum;
 
 	/**
-	 * 回数とその得点：Map<integer,integer>
+	 * 得点マップ:Map<Integer, Integer> key:回数, value:得点
 	 */
-	private Map<Integer,Integer> points=new HashMap<>();
-
-
+	private Map<Integer, Integer> points;
 
 	/**
-	 * ゲッタ・セッタ
+	 * コンストラクタ
+	 */
+	public TestListSubject() {
+		// 得点マップを初期化
+		points = new HashMap<>();
+	}
+
+	/**
+	 * ゲッター、セッター
 	 */
 	public int getEntYear() {
 		return entYear;
@@ -50,16 +53,16 @@ public class TestListSubject implements Serializable {
 		return studentNo;
 	}
 
-	public void setStudentNo(String studentNo) {
-		this.studentNo = studentNo;
+	public void setStudentNo(String student_no) {
+		this.studentNo = student_no;
 	}
 
 	public String getStudentName() {
 		return studentName;
 	}
 
-	public void setStudentName(String studentName) {
-		this.studentName = studentName;
+	public void setStudentName(String student_name) {
+		this.studentName = student_name;
 	}
 
 	public String getClassNum() {
@@ -70,46 +73,43 @@ public class TestListSubject implements Serializable {
 		this.classNum = classNum;
 	}
 
-	public Map<Integer,Integer> getPoints() {
+	public Map<Integer, Integer> getPoints() {
 		return points;
 	}
 
-	public void setPoints(Map<Integer,Integer> points) {
+	public void setPoints(Map<Integer, Integer> points) {
 		this.points = points;
 	}
 
 	/**
-	 * キー（テスト回数）から値（点数）をゲットするメソッド
-	 * @param key テスト回数：int
-	 * @return 点数（String）
+	 * getPointメソッド 得点マップから値を取得する
+	 *
+	 * @param key:int
+	 *            回数
+	 * @return 得点:String
 	 */
 	public String getPoint(int key) {
-
-		// Mapインスタンスの初期化
-		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-		// pointsフィールドから値をゲット
-		map = getPoints();
-		// キーのテスト回数から値の点数を返却
-		return Integer.toString(map.get(key));
+		// 得点マップから値を取得
+		Integer k = points.get(key);
+		if (k == null) {
+			// 得点マップに値が存在しなかった場合"-"を返却
+			return "-";
+		} else {
+			// 得点マップに値が存在した場合、文字列として得点を返却
+			return k.toString();
+		}
 	}
 
 	/**
-	 * pointsフィールドにMapでテスト回数と点数をセットするメソッド
-	 * @param key テスト回数：int
-	 * @param value 点数：int
+	 * putPointメソッド 得点マップに値を格納する
+	 *
+	 * @param key:int
+	 *            回数
+	 * @param value:int
+	 *            得点
 	 */
 	public void putPoint(int key, int value) {
-
-		// Mapインスタンスの初期化
-		Map<Integer, Integer>map = new HashMap<Integer, Integer>();
-		// pointsフィールドから値をゲット
-		map = getPoints();
-		// mapにテスト回数と点数を格納
-		map.put(key, value);
-		// pointsフィールドにセット
-		setPoints(map);
-
+		// 得点マップに値を格納
+		points.put(key, value);
 	}
-
-
 }

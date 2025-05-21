@@ -15,7 +15,7 @@ public class School implements Serializable {
 	private String name;
 
 	/**
-	 * ゲッター・セッター
+	 * ゲッター、セッター
 	 */
 	public String getCd() {
 		return cd;

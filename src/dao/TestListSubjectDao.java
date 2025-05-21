@@ -13,84 +13,107 @@ import bean.TestListSubject;
 
 public class TestListSubjectDao extends Dao {
 
-	private String baseSql = "select student.ent_year, student.no, student.name, student.class_num, a.no as no1, a.point as point1, b.no as no2, b.point as point2";
+	/**
+	 * baseSql:String 共通SQL文 プライベート
+	 */
+	private String baseSql = "SELECT ST.ent_year as st_ent_year, ST.no as st_no, ST.name as st_name, "
+			+ "ST.class_num as st_class_num, T.no as t_no, T.point as t_point "
+			+ "FROM student ST left outer join (test T inner join subject SJ on T.subject_cd=SJ.cd) "
+			+ "on ST.no=T.student_no ";
 
+	/**
+	 * postFilterメソッド フィルター後のリストへの格納処理 プライベート
+	 *
+	 * @param rSet:リザルトセット
+	 * @return 科目成績表示用のリスト:List<TestListSubject> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
 	private List<TestListSubject> postFilter(ResultSet rSet) throws Exception {
-
-		// リストを初期化
 		List<TestListSubject> list = new ArrayList<>();
-		try {
-			// リザルトセットを全権走査
-			while (rSet.next()) {
-				// 科目別リストインスタンスを初期化
-				TestListSubject tls = new TestListSubject();
-				// 科目別リストインスタンスに検索結果をセット
-				tls.setEntYear(rSet.getInt("ent_year"));
-				tls.setStudentNo(rSet.getString("no"));
-				tls.setStudentName(rSet.getString("name"));
-				tls.setClassNum(rSet.getString("class_num"));
-				tls.putPoint(rSet.getInt("no1"), rSet.getInt("point1"));
-				if (rSet.getInt("no2") != 0) {
-					tls.putPoint(rSet.getInt("no2"), rSet.getInt("point2"));
-				} else {
-					tls.putPoint(2, -1);
-				}
+		TestListSubject test = new TestListSubject();
 
+		// 現在の学生番号
+		String currentStudentNo = null;
+		while (rSet.next()) {
+			// 学生番号を取得
+			String studentNo = rSet.getString("st_no");
+
+			if (currentStudentNo == null) {
+				// 最初のデータの場合
+				// 現在の学生番号に学生番号をセット
+				currentStudentNo = studentNo;
+
+				// インスタンスに値をセット
+				test.setStudentNo(studentNo);
+				test.setEntYear(rSet.getInt("st_ent_year"));
+				test.setClassNum(rSet.getString("st_class_num"));
+				test.setStudentName(rSet.getString("st_name"));
+			} else if (!studentNo.equals(currentStudentNo)) {
+				// 学生が変わった場合
 				// リストに追加
-				list.add(tls);
-			}
-		} catch (SQLException | NullPointerException e) {
-			e.printStackTrace();
-		}
+				list.add(test);
+				// インスタンスを初期化
+				test = new TestListSubject();
 
+				// 現在の学生番号に学生番号をセット
+				currentStudentNo = studentNo;
+				// インスタンスに値をセット
+				test.setStudentNo(studentNo);
+				test.setEntYear(rSet.getInt("st_ent_year"));
+				test.setClassNum(rSet.getString("st_class_num"));
+				test.setStudentName(rSet.getString("st_name"));
+			}
+
+			// 回数と得点を取得
+			int num = rSet.getInt("t_no");
+			int point = rSet.getInt("t_point");
+			// 得点マップにセット
+			test.putPoint(num, point);
+		}
+		if (currentStudentNo != null) {
+			// 結果が0件でなかった場合
+			// 最後のデータをリストに追加
+			list.add(test);
+		}
 		return list;
 	}
 
+	/**
+	 * filterメソッド 入学年度、クラス番号、科目、学校を指定して科目成績表示用の一覧を取得する
+	 *
+	 * @param entYear:int
+	 *            入学年度
+	 * @param classNum:String
+	 *            クラス番号
+	 * @param subject:Subject
+	 *            科目
+	 * @param school：School
+	 *            学校
+	 * @return 科目成績表示用のリスト:List<TestListSubject> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
 	public List<TestListSubject> filter(int entYear, String classNum, Subject subject, School school) throws Exception {
 
-		// リストを初期化
-		List<TestListSubject> list = new ArrayList<>();
-		// コネクションを確立
 		Connection connection = getConnection();
-		// プリペアードステートメント
 		PreparedStatement statement = null;
-		// リザルトセット
+		List<TestListSubject> list = new ArrayList<>();
 		ResultSet rSet = null;
-		// SQL文の参照テーブル
-		String from = " from (select test.student_no, test.subject_cd, test.school_cd, test.no, test.point, test.class_num from test join student on test.student_no = student.no where student.ent_year = ? and subject_cd = ? and test.class_num = ? and test.school_cd = ? and test.no = 1 order by test.student_no) as a";
-		// SQL文の結合
-		String join = " left join (select test.student_no, test.subject_cd, test.school_cd, test.no, test.point, test.class_num from test join student on test.student_no = student.no where student.ent_year = ? and subject_cd = ? and test.class_num = ? and test.school_cd = ? and test.no = 2 order by test.student_no) as b";
-		// SQL文の条件
-		String condition = " on a.student_no = b.student_no and a.subject_cd = b.subject_cd and a.class_num = b.class_num";
-		// SQL文の結合2
-		String join2 = " join student on a.student_no = student.no";
-		// SQL文のソート
-		String order = " order by a.student_no asc, a.no asc";
+
+		String condition = "and T.subject_cd=? "
+				+ "where ST.ent_year=? and ST.class_num=? and ST.school_cd=? and ST.is_attend=true";
+		String order = " order by ST.no asc, T.no asc";
 
 		try {
-			// プリペアードステートメントにSQL文をセット
-			statement = connection.prepareStatement(baseSql + from + join + condition + join2 + order);
-			// プリペアードステートメントに入学年度をバインド
-			statement.setInt(1, entYear);
-			// プリペアードステートメントに科目番号をバインド
-			statement.setString(2, subject.getCd());
-			// プリペアードステートメントにクラス番号をバインド
+			statement = connection.prepareStatement(baseSql + condition + order);
+			statement.setString(1, subject.getCd());
+			statement.setInt(2, entYear);
 			statement.setString(3, classNum);
-			// プリペアードステートメントに学校コードをバインド
 			statement.setString(4, school.getCd());
-			// 同じ順番でバインド
-			statement.setInt(5, entYear);
-			statement.setString(6, subject.getCd());
-			statement.setString(7, classNum);
-			statement.setString(8, school.getCd());
-			// プリペアードステートメントを実行
 			rSet = statement.executeQuery();
-			// リストへの格納処理を実行
 			list = postFilter(rSet);
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// プリペアードステートメントを閉じる
 			if (statement != null) {
 				try {
 					statement.close();
@@ -98,7 +121,6 @@ public class TestListSubjectDao extends Dao {
 					throw sqle;
 				}
 			}
-			// コネクションを閉じる
 			if (connection != null) {
 				try {
 					connection.close();

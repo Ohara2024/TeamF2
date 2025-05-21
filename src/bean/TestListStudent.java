@@ -1,36 +1,31 @@
-//学生別成績一覧
-
 package bean;
 
 import java.io.Serializable;
 
 public class TestListStudent implements Serializable {
-
 	/**
-	 * 科目名：String
+	 * 科目名:String
 	 */
 	private String subjectName;
 
 	/**
-	 * 科目コード：String
+	 * 科目コード:String
 	 */
 	private String subjectCd;
 
 	/**
-	 * 合計：int
+	 * 回数:int
 	 */
 	private int num;
 
 	/**
-	 * 点数：int
+	 * 得点:int
 	 */
 	private int point;
 
-
 	/**
-	 * ゲッタ・セッタ
+	 * ゲッター、セッター
 	 */
-
 	public String getSubjectName() {
 		return subjectName;
 	}
@@ -62,7 +57,5 @@ public class TestListStudent implements Serializable {
 	public void setPoint(int point) {
 		this.point = point;
 	}
-
-
 
 }
