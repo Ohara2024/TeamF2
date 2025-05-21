@@ -29,7 +29,7 @@ public class FrontController extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         if ("login".equals(action)) {
-            req.getRequestDispatcher("scoremanager/login.jsp").forward(req, resp);
+            req.getRequestDispatcher("/scoremanager/login.jsp").forward(req, resp);
         } else if ("menu".equals(action)) {
             new MenuAction().execute(req, resp);
         } else if ("logout".equals(action)) {
@@ -37,7 +37,7 @@ public class FrontController extends HttpServlet {
         } else if ("executeLogin".equals(action)) {
             new LoginAction().execute(req, resp); // LoginActionを経由
         } else {
-            req.getRequestDispatcher("scoremanager/login.jsp").forward(req, resp); // デフォルトはログイン画面
+            req.getRequestDispatcher("/scoremanager/login.jsp").forward(req, resp); // デフォルトはログイン画面
         }
     }
 }

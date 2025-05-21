@@ -13,6 +13,6 @@ public class LogOutAction {
         if (session != null) {
             session.invalidate(); // セッションを無効化
         }
-        req.getRequestDispatcher("scoremanager/login.jsp").forward(req, resp);
+        req.getRequestDispatcher("/scoremanager/login.jsp").forward(req, resp);
     }
 }

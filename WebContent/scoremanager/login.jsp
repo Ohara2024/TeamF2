@@ -73,7 +73,7 @@
 <body>
     <div class="login-container">
         <h2>ログイン</h2>
-        <form action="/TeamF/FrontController" method="post">
+        <form action="/TeamF2/FrontController" method="post">
             <input type="hidden" name="action" value="executeLogin">
             <label>ID:</label>
             <input type="text" name="id"><br> <!-- value="admin" を削除 -->

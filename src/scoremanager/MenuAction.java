@@ -11,10 +11,10 @@ public class MenuAction {
     public void execute(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("teacher") != null) {
-            req.getRequestDispatcher("/menu.jsp").forward(req, resp);
+            req.getRequestDispatcher("/TeamF2/scoremanager/menu.jsp").forward(req, resp);
         } else {
             req.setAttribute("error", "ログインしてください。");
-            req.getRequestDispatcher("scoremanager/login.jsp").forward(req, resp);
+            req.getRequestDispatcher("/scoremanager/login.jsp").forward(req, resp);
         }
     }
 }

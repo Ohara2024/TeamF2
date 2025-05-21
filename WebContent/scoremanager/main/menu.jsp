@@ -119,7 +119,7 @@
         <h1>大原学園 成績管理システム</h1>
         <div class="user-info">
             <span><%= session.getAttribute("teacherName") %> さん</span>
-            <form action="/TeamF/FrontController" method="post" style="margin: 0;">
+            <form action="/TeamF2/FrontController" method="post" style="margin: 0;">
                 <input type="hidden" name="action" value="logout">
                 <button type="submit" class="logout-link" style="background: none; border: none; padding: 0; cursor: pointer;">ログアウト</button>
             </form>
@@ -128,7 +128,7 @@
     <div class="container">
         <div class="sidebar">
             <ul>
-                <li><a href="/TeamF/scoremanager/main/student_list.jsp">学生管理</a></li>
+                <li><a href="/TeamF2/scoremanager/main/student_list.jsp">学生管理</a></li>
                 <li><a href="#">成績管理</a></li>
                 <li><a href="#">成績登録</a></li>
                 <li><a href="#">成績参照</a></li>
@@ -138,7 +138,7 @@
             <h2>メニュー</h2>
             <p>ようこそ、<%= session.getAttribute("teacherName") %> さん！</p>
             <div class="card">
-                <a href="/TeamF/scoremanager/main/student_list.jsp">学生管理</a>
+                <a href="/TeamF2/scoremanager/main/student_list.jsp">学生管理</a>
             </div>
             <div class="card">
                 <a href="#">成績管理</a>
