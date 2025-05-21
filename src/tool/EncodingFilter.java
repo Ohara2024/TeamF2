@@ -22,5 +22,5 @@ public class EncodingFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}i
+    public void destroy() {}
 }

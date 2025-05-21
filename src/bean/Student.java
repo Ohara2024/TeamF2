@@ -23,4 +23,4 @@ public class Student {
     public void setSchoolCd(String schoolCd) { this.schoolCd = schoolCd; }
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
-}8
+}

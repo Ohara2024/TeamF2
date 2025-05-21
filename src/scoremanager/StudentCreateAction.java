@@ -10,4 +10,4 @@ public class StudentCreateAction implements Action {
     public void execute(HttpServletRequest req, HttpServletResponse res) throws Exception {
         req.getRequestDispatcher("/scoremanager/main/student_create.jsp").forward(req, res);
     }
-}s
+}
