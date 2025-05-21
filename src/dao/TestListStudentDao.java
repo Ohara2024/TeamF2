@@ -12,64 +12,61 @@ import bean.TestListStudent;
 
 public class TestListStudentDao extends Dao {
 
-	private String baseSql = "select subject.name, test.subject_cd, test.no, test.point from test";
+	/**
+	 * baseSql:String 共通SQL文 プライベート
+	 */
+	private String baseSql = "SELECT SJ.name as sj_name, SJ.cd as sj_cd, T.no as t_no, T.point as t_point "
+			+ "FROM student ST inner join (test T inner join subject SJ on T.subject_cd=SJ.cd) "
+			+ "on ST.no=T.student_no ";
 
+	/**
+	 * postFilterメソッド フィルター後のリストへの格納処理 プライベート
+	 *
+	 * @param rSet:リザルトセット
+	 * @return 学生成績表示用のリスト:List<TestListStudent> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
 	private List<TestListStudent> postFilter(ResultSet rSet) throws Exception {
-
-		// リストを初期化
 		List<TestListStudent> list = new ArrayList<>();
-		try {
-			// リザルトセットを全権走査
-			while (rSet.next()) {
-				// 学生別リストインスタンスを初期化
-				TestListStudent tls = new TestListStudent();
-				// 学生別リストインスタンスに検索結果をセット
-				tls.setSubjectName(rSet.getString("name"));
-				tls.setSubjectCd(rSet.getString("subject_cd"));
-				tls.setNum(rSet.getInt("no"));
-				tls.setPoint(rSet.getInt("point"));
-				// リストに追加
-				list.add(tls);
-			}
-		} catch (SQLException | NullPointerException e) {
-			e.printStackTrace();
-		}
 
+		while (rSet.next()) {
+			TestListStudent test = new TestListStudent();
+			test.setNum(rSet.getInt("t_no"));
+			test.setPoint(rSet.getInt("t_point"));
+			test.setSubjectCd(rSet.getString("sj_cd"));
+			test.setSubjectName(rSet.getString("sj_name"));
+
+			list.add(test);
+		}
 		return list;
 	}
 
+	/**
+	 * filterメソッド 学生を指定して学生成績表示用の一覧を取得する
+	 *
+	 * @param student:Student
+	 *            学生
+	 * @return 学生成績表示用のリスト:List<TestListStudent> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
 	public List<TestListStudent> filter(Student student) throws Exception {
-
-		// リストを初期化
 		List<TestListStudent> list = new ArrayList<>();
-		// コネクションを確立
 		Connection connection = getConnection();
-		// プリペアードステートメント
 		PreparedStatement statement = null;
-		// リザルトセット
 		ResultSet rSet = null;
-		// SQL文の結合
-		String join = " join subject on test.subject_cd = subject.cd";
-		// SQL文の条件
-		String condition = " where test.student_no = ? and test.school_cd = ?";
-		// SQL文のソート
-		String order = " order by subject_cd asc, no asc";
+
+		String condition = "where ST.no=?";
+		String order = " order by SJ.cd asc, T.no asc";
 
 		try {
-			// プリペアードステートメントにSQL文をセット
-			statement = connection.prepareStatement(baseSql + join + condition + order);
-			// プリペアードステートメントに学生番号をバインド
+			statement = connection.prepareStatement(baseSql + condition + order);
 			statement.setString(1, student.getNo());
-			// プリペアードステートメントに学校コードをバインド
-			statement.setString(2, student.getSchool().getCd());
-			// プリペアードステートメントを実行
 			rSet = statement.executeQuery();
-			// リストへの格納処理を実行
+
 			list = postFilter(rSet);
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// プリペアードステートメントを閉じる
 			if (statement != null) {
 				try {
 					statement.close();
@@ -77,7 +74,6 @@ public class TestListStudentDao extends Dao {
 					throw sqle;
 				}
 			}
-			// コネクションを閉じる
 			if (connection != null) {
 				try {
 					connection.close();

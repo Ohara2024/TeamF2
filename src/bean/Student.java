@@ -1,41 +1,41 @@
 package bean;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 public class Student implements Serializable {
-
 	/**
-	 * 学生番号：String
+	 * 学生番号:String
 	 */
 	private String no;
 
 	/**
-	 * 学生名：String
+	 * 氏名:String
 	 */
 	private String name;
 
 	/**
-	 * 入学年度：int
+	 * 入学年度:int
 	 */
 	private int entYear;
 
 	/**
-	 * クラス番号：String
+	 * クラス番号:String
 	 */
 	private String classNum;
 
 	/**
-	 * 在学フラグ：boolean
+	 * 在学中フラグ:boolean true:在学中
 	 */
 	private boolean isAttend;
 
 	/**
-	 * 学校：school
+	 * 所属校:School
 	 */
 	private School school;
 
 	/**
-	 * ゲッタ・セッタ
+	 * ゲッター、セッター
 	 */
 	public String getNo() {
 		return no;
@@ -83,6 +83,26 @@ public class Student implements Serializable {
 
 	public void setSchool(School school) {
 		this.school = school;
+	}
+
+	/**
+	 * getSchoolYearメソッド 現在の年度と入学年度から現在の学年を求める
+	 *
+	 * @return 現在の学年:int
+	 */
+	public int getSchoolYear() {
+//		LocalDateインスタンスを取得
+		LocalDate todaysDate = LocalDate.now();
+//		現在の月と年を取得
+		int month = todaysDate.getMonthValue();
+		int year = todaysDate.getYear();
+//		現在の月が１月から３月までの場合
+		if (1 <= month && month <= 3) {
+//			現在の年を1減らす
+			year--;
+		}
+//		現在の年と入学年度から算出した現在の学年を返却
+		return year - entYear + 1;
 	}
 
 }

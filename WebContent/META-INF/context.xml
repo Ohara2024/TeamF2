@@ -3,13 +3,16 @@
 <!-- 上記はEclipseの警告を消すための記述です。 -->
 
 <Context reloadable="true">
-	<Resource
-		name="jdbc/exam"
-		auth="Container"
-		type="javax.sql.DataSource"
-		driverClassName="org.h2.Driver"
-		url="jdbc:h2:tcp://localhost/~/exam"
-		username="sa"
-		password=""
-	/>
+    <Resource
+        name="jdbc/yajima"
+        auth="Container"
+        type="javax.sql.DataSource"
+        driverClassName="org.h2.Driver"
+        url="jdbc:h2:tcp://localhost/~/exam;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3"
+        username="sa"
+        password=""
+        maxTotal="20"
+        maxIdle="10"
+        maxWaitMillis="10000"
+    />
 </Context>

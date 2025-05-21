@@ -12,55 +12,50 @@ import bean.Student;
 import bean.Subject;
 import bean.Test;
 
+
 public class TestDao extends Dao {
-
-	private String baseSql = "select student.no as student_no, student.name, student.ent_year, student.class_num, student.is_attend, student.school_cd, test.subject_cd, test.no as count, test.point from student left join (select * from test where subject_cd = ? and no = ?) as test on student.no = test.student_no";
-
+	/**
+	 * getメソッド 学生、科目、学校、回数を指定して成績インスタンスを1権取得する
+	 *
+	 * @param student:Student
+	 *            学生
+	 * @param subject:Subject
+	 *            科目
+	 * @param school:School
+	 *            学校
+	 * @param no:int
+	 *            回数
+	 * @return
+	 * @throws Exception
+	 */
 	public Test get(Student student, Subject subject, School school, int no) throws Exception {
-
-		// テストインスタンスを初期化
+		// 成績インスタンスを初期化
 		Test test = new Test();
-		// データベースへのコネクションを確立
+
 		Connection connection = getConnection();
-		// プリペアードステートメント
 		PreparedStatement statement = null;
 
 		try {
-			// プリペアードステートメントにSQL文をセット
-			statement = connection.prepareStatement("select * from test where student_no = ? and school_cd = ? and subject_cd = ? and no = ?");
-			// プリペアードステートメントに値をバインド
+			statement = connection.prepareStatement(
+					"select * from test where student_no=? and subject_cd=? and school_cd=? and no=?");
 			statement.setString(1, student.getNo());
-			statement.setString(2, school.getCd());
-			statement.setString(3, subject.getCd());
+			statement.setString(2, subject.getCd());
+			statement.setString(3, school.getCd());
 			statement.setInt(4, no);
-			// プリペアードステートメントを実行
 			ResultSet rSet = statement.executeQuery();
 
-			// 学生Daoを初期化
-			StudentDao studentDao = new StudentDao();
-			// 科目Daoを初期化
-			SubjectDao subjectDao = new SubjectDao();
-			// 学校Daoを初期化
-			SchoolDao schoolDao = new SchoolDao();
-
 			if (rSet.next()) {
-				// リザルトセットが存在する場合
-				// テストインスタンスに検索結果をセット
-				test.setStudent(studentDao.get(rSet.getString("student_no")));
-				test.setSubject(subjectDao.get(rSet.getString("subject_cd"), schoolDao.get(rSet.getString("school_cd"))));
-				test.setSchool(schoolDao.get(rSet.getString("school_cd")));
-				test.setNo(rSet.getInt("no"));
+				test.setStudent(student);
+				test.setSubject(subject);
+				test.setSchool(school);
+				test.setNo(no);
 				test.setPoint(rSet.getInt("point"));
-				test.setClassNum(rSet.getString("class_num"));
 			} else {
-				// リザルトセットが存在しない場合
-				// テストインスタンスにnullをセット
 				test = null;
 			}
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// プリペアードステートメントを閉じる
 			if (statement != null) {
 				try {
 					statement.close();
@@ -68,7 +63,6 @@ public class TestDao extends Dao {
 					throw sqle;
 				}
 			}
-			// コネクションを閉じる
 			if (connection != null) {
 				try {
 					connection.close();
@@ -81,70 +75,103 @@ public class TestDao extends Dao {
 		return test;
 	}
 
-	private List<Test> postFilter(ResultSet rSet, School school) throws Exception {
+	/**
+	 * baseSql:String 共通SQL文 プライベート
+	 */
+	private String baseSql = "SELECT SJ.cd as sj_cd, SJ.name as sj_name, ST.no as st_no, ST.name as st_name, "
+			+ "ST.ent_year as st_ent_year, ST.class_num as st_class_num, ST.is_attend as st_is_attend, "
+			+ "T.no as t_no, coalesce(T.point, -1) as t_point "
+			+ "FROM student ST left outer join (test T inner join subject SJ on T.subject_cd=SJ.cd) "
+			+ "on ST.no=T.student_no ";
 
+	/**
+	 * postFilterメソッド フィルター後のリストへの格納処理 プライベート
+	 *
+	 * @param rSet:リザルトセット
+	 * @param school:School
+	 *            学校
+	 * @return 成績のリスト:List<Student> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
+	private List<Test> postFilter(ResultSet rSet, School school) throws Exception {
 		// リストを初期化
 		List<Test> list = new ArrayList<>();
-		StudentDao studentDao = new StudentDao();
-		SubjectDao subjectDao = new SubjectDao();
-		try {
-			// リザルトセット全権走査
-			while (rSet.next()) {
-				// 得点インスタンスを初期化
-				Test test = new Test();
-				// 得点インスタンスに検索結果をセット
-				test.setStudent(studentDao.get(rSet.getString("student_no")));
-				test.setClassNum(rSet.getString("class_num"));
-				test.setSubject(subjectDao.get(rSet.getString("subject_cd"), school));
-				test.setSchool(school);
-				test.setNo(rSet.getInt("count"));
-				test.setPoint(rSet.getInt("point"));
-				// リストを初期化
-				list.add(test);
-			}
-		} catch (SQLException | NullPointerException e) {
-			e.printStackTrace();
+		// リザルトセットを全件走査
+		while (rSet.next()) {
+			// 科目インスタンス
+			Subject subject = new Subject();
+			subject.setCd(rSet.getString("sj_cd"));
+			subject.setName(rSet.getString("sj_name"));
+			subject.setSchool(school);
+
+			// 学生インスタンス
+			Student student = new Student();
+			student.setNo(rSet.getString("st_no"));
+			student.setName(rSet.getString("st_name"));
+			student.setEntYear(rSet.getInt("st_ent_year"));
+			student.setClassNum(rSet.getString("st_class_num"));
+			student.setAttend(rSet.getBoolean("st_is_attend"));
+			student.setSchool(school);
+
+			// 成績インスタンス
+			Test test = new Test();
+			test.setStudent(student);
+			test.setClassNum(rSet.getString("st_class_num"));
+			test.setSubject(subject);
+			test.setSchool(school);
+			test.setNo(rSet.getInt("t_no"));
+			test.setPoint(rSet.getInt("t_point"));
+
+			// リストに追加
+			list.add(test);
 		}
 
 		return list;
 	}
 
+	/**
+	 * filterメソッド 入学年度、クラス番号、科目、回数、学校を指定して成績の一覧を取得する
+	 *
+	 * @param entYear:int
+	 *            入学年度
+	 * @param classNum:String
+	 *            クラス番号
+	 * @param subject:Subject
+	 *            科目
+	 * @param num:int
+	 *            回数
+	 * @param school：School
+	 *            学校
+	 * @return 成績のリスト:List<Test> 存在しない場合は0件のリスト
+	 * @throws Exception
+	 */
 	public List<Test> filter(int entYear, String classNum, Subject subject, int num, School school) throws Exception {
-
 		// リストを初期化
 		List<Test> list = new ArrayList<>();
-		// コネクションを確立
+
 		Connection connection = getConnection();
-		// プリペアードステートメント
 		PreparedStatement statement = null;
-		// リザルトセット
 		ResultSet rSet = null;
+
 		// SQL文の条件
-		String condition = " where ent_year = ? and student.class_num = ? and student.school_cd = ?";
+		String condition = "and T.subject_cd=? and T.no=? "
+				+ "where ST.ent_year=? and ST.class_num=? and ST.school_cd=? and ST.is_attend=true";
 		// SQL文のソート
-		String order = " order by student.no asc";
+		String order = " order by ST.no asc";
 
 		try {
-			// プリペアードステートメントにSQL文をセット
 			statement = connection.prepareStatement(baseSql + condition + order);
-			// プリペアードステートメントに科目番号をバインド
 			statement.setString(1, subject.getCd());
-			// プリペアードステートメントにテスト回数をバインド
 			statement.setInt(2, num);
-			// プリペアードステートメントに入学年度をバインド
 			statement.setInt(3, entYear);
-			// プリペアードステートメントにクラス番号をバインド
 			statement.setString(4, classNum);
-			// プリペアードステートメントに学校コードをバインド
 			statement.setString(5, school.getCd());
-			// プリペアードステートメントを実行
 			rSet = statement.executeQuery();
-			// リストへの格納処理を実行
+
 			list = postFilter(rSet, school);
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// プリペアードステートメントを閉じる
 			if (statement != null) {
 				try {
 					statement.close();
@@ -152,7 +179,6 @@ public class TestDao extends Dao {
 					throw sqle;
 				}
 			}
-			// コネクションを閉じる
 			if (connection != null) {
 				try {
 					connection.close();
@@ -165,73 +191,111 @@ public class TestDao extends Dao {
 		return list;
 	}
 
+	/**
+	 * saveメソッド 成績のリストをデータベースに保存する データが存在する場合は更新、存在しない場合は登録
+	 * 全て正常終了した場合にのみコミットし、それ以外はロールバックする
+	 *
+	 * @param list:List<Test>
+	 *            成績のリスト
+	 * @return 成功:true, 失敗:false
+	 * @throws Exception
+	 */
 	public boolean save(List<Test> list) throws Exception {
+		Connection connection = getConnection();
+		// コミット許可フラグ
+		boolean canCommit = true;
 
 		try {
+			// 自動コミットをオフ
+			connection.setAutoCommit(false);
+			// リストを全件走査
 			for (Test test : list) {
-				// コネクションを確立
-				Connection connection = getConnection();
-				// saveメソッドで情報を保存
-				save(test, connection);
+				// 1件ずつ保存
+				canCommit = save(test, connection);
+				// 失敗の場合
+				if (!canCommit) {
+					// ループを抜ける
+					break;
+				}
 			}
-		} catch (Exception e) {
-			throw e;
-		}
 
-		return true;
+			if (canCommit) {
+				// 全て正常終了の場合
+				// コミット
+				connection.commit();
+			} else {
+				throw new Exception();
+			}
+		} catch (SQLException sqle) {
+			// エラーが発生した場合
+			try {
+				// ロールバック
+				connection.rollback();
+			} catch (SQLException e) {
+				throw e;
+			}
+
+		} finally {
+			if (connection != null) {
+				try {
+					connection.setAutoCommit(true);
+					connection.close();
+				} catch (SQLException sqle) {
+					throw sqle;
+				}
+			}
+		}
+		return canCommit;
 	}
 
+	/**
+	 * saveメソッド プライベート 成績インスタンスをデータベースに保存する データが存在する場合は更新、存在しない場合は登録
+	 *
+	 * @param test:Test
+	 *            成績
+	 * @return 成功:true, 失敗:false
+	 * @throws Exception
+	 */
 	private boolean save(Test test, Connection connection) throws Exception {
-
 		// プリペアードステートメント
 		PreparedStatement statement = null;
 		// 実行件数
 		int count = 0;
 
 		try {
-			// データベースからテスト情報を取得
+			// データベースから成績を取得
 			Test old = get(test.getStudent(), test.getSubject(), test.getSchool(), test.getNo());
 			if (old == null) {
-				// 学生が存在しなかった場合
+				// 成績が存在しなかった場合
 				// プリペアードステートメントにINSERT文をセット
-				statement = connection.prepareStatement("insert into test(student_no, subject_cd, school_cd, no, point, class_num) values(?, ?, ?, ?, ?, ?)");
-				// プリペアードステートメントに値をバインド
-				statement.setString(1, test.getStudent().getNo());
-				statement.setString(2, test.getSubject().getCd());
-				statement.setString(3, test.getSchool().getCd());
-				statement.setInt(4, test.getNo());
-				statement.setInt(5, test.getPoint());
-				statement.setString(6, test.getClassNum());
-			} else {
-				// テストが存在した場合
-				// プリペアードステートメントにUPDATE文をセット
-				statement = connection.prepareStatement("update test set point = ? where student_no = ? and subject_cd = ? and school_cd = ? and no = ?");
-				// プリペアードステートメントに値をバインド
+				statement = connection.prepareStatement(
+						"insert into test(point, no, student_no, subject_cd, school_cd, class_num) values(?, ?, ?, ?, ?, ?)");
 				statement.setInt(1, test.getPoint());
-				statement.setString(2, test.getStudent().getNo());
-				statement.setString(3, test.getSubject().getCd());
-				statement.setString(4, test.getSchool().getCd());
-				statement.setInt(5, test.getNo());
+				statement.setInt(2, test.getNo());
+				statement.setString(3, test.getStudent().getNo());
+				statement.setString(4, test.getSubject().getCd());
+				statement.setString(5, test.getSchool().getCd());
+				statement.setString(6, test.getStudent().getClassNum());
+			} else {
+				// 成績が存在する場合
+				// プリペアードステートメントにUPDATE文をセット
+				statement = connection.prepareStatement(
+						"update test set point=? where no=? and student_no=? and subject_cd=? and school_cd=?");
+				statement.setInt(1, test.getPoint());
+				statement.setInt(2, test.getNo());
+				statement.setString(3, test.getStudent().getNo());
+				statement.setString(4, test.getSubject().getCd());
+				statement.setString(5, test.getSchool().getCd());
 			}
-
 			// プリペアードステートメントを実行
 			count = statement.executeUpdate();
 
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// プリペアードステートメントを閉じる
 			if (statement != null) {
 				try {
 					statement.close();
-				} catch (SQLException sqle) {
-					throw sqle;
-				}
-			}
-			// コネクションを閉じる
-			if (connection != null) {
-				try {
-					connection.close();
 				} catch (SQLException sqle) {
 					throw sqle;
 				}
@@ -239,12 +303,106 @@ public class TestDao extends Dao {
 		}
 
 		if (count > 0) {
-			// 実行件数が1件以上ある場合
 			return true;
 		} else {
-			// 実行件数が0件の場合
 			return false;
 		}
 	}
 
+	/**
+	 * deleteメソッド プライベート 成績のリストをデータベースから削除する 全て正常終了した場合にのみコミットし、それ以外はロールバックする
+	 *
+	 * @param list:List<Test>
+	 *            成績のリスト
+	 * @return 成功:true, 失敗:false
+	 * @throws Exception
+	 */
+	public boolean delete(List<Test> list) throws Exception {
+		Connection connection = getConnection();
+		// コミット許可フラグ
+		boolean canCommit = true;
+
+		try {
+			// 自動コミットをオフ
+			connection.setAutoCommit(false);
+			// リストを全件走査
+			for (Test test : list) {
+				// 1件ずつ削除
+				canCommit = delete(test, connection);
+				// 失敗の場合
+				if (!canCommit) {
+					// ループを抜ける
+					break;
+				}
+			}
+
+			// 全て正常終了の場合
+			if (canCommit) {
+				// コミット
+				connection.commit();
+			} else {
+				throw new Exception();
+			}
+		} catch (SQLException sqle) {
+			// エラーの場合
+			try {
+				// ロールバック
+				connection.rollback();
+			} catch (SQLException e) {
+				throw e;
+			}
+
+		} finally {
+			if (connection != null) {
+				try {
+					connection.setAutoCommit(true);
+					connection.close();
+				} catch (SQLException sqle) {
+					throw sqle;
+				}
+			}
+		}
+		return canCommit;
+	}
+
+	/**
+	 * deleteメソッド プライベート 成績インスタンスをデータベースから削除する
+	 *
+	 * @param test:Test
+	 *            成績
+	 * @return 成功:true, 失敗:false
+	 * @throws Exception
+	 */
+	private boolean delete(Test test, Connection connection) throws Exception {
+		PreparedStatement statement = null;
+		int count = 0;
+
+		try {
+			statement = connection
+					.prepareStatement("delete from test where no=? and student_no=? and subject_cd=? and school_cd=?");
+			statement.setInt(1, test.getNo());
+			statement.setString(2, test.getStudent().getNo());
+			statement.setString(3, test.getSubject().getCd());
+			statement.setString(4, test.getSchool().getCd());
+
+			count = statement.executeUpdate();
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException sqle) {
+					throw sqle;
+				}
+			}
+		}
+
+		if (count > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }

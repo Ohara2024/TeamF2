@@ -3,38 +3,39 @@ package bean;
 import java.io.Serializable;
 
 public class Test implements Serializable {
-
 	/**
-	 * 生徒：Student
+	 * 学生:Student
 	 */
 	private Student student;
 
 	/**
-	 * クラス番号：String
+	 * クラス番号:String
 	 */
 	private String classNum;
 
 	/**
-	 * サブジェクト：Subject
+	 * 科目:Subject
 	 */
 	private Subject subject;
 
 	/**
-	 * 学校：school
+	 * 学校:School
 	 */
 	private School school;
 
 	/**
-	 * 番号：no
+	 * 回数:int
 	 */
 	private int no;
 
 	/**
-	 * 点数：point
+	 * 得点:int
 	 */
 	private int point;
 
-	//ゲッタとセッタ
+	/**
+	 * ゲッター、セッター
+	 */
 	public Student getStudent() {
 		return student;
 	}
@@ -82,8 +83,4 @@ public class Test implements Serializable {
 	public void setPoint(int point) {
 		this.point = point;
 	}
-
-
-
 }
-
